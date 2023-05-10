@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Definir precios y cantidades disponibles de cada producto
+declare -A productos=(
+  ["Coca-Cola"]=0.75
+  ["Agua"]=0.50
+  ["Cerveza"]=1.25
+)
+declare -A cantidades=(
+  ["Coca-Cola"]=10
+  ["Agua"]=20
+  ["Cerveza"]=5
+)
+
+# Función para mostrar los productos disponibles
+function mostrar_productos {
+  echo "PRODUCTOS DISPONIBLES:"
+  for producto in "${!productos[@]}"; do
+    echo "- $producto (${productos[$producto]}€)"
+  done
+}
+
+# Función para solicitar al usuario que seleccione un producto
+function seleccionar_producto {
+  read -p "Seleccione un producto: " producto
+  # Validar que el producto exista
+  if [[ ! "${!productos[@]}" =~ "$producto" ]]; then
+    echo "ERROR: Producto no disponible."
+    seleccionar_producto
+  fi
+}
+
+# Función para solicitar al usuario que introduzca el dinero
+function introducir_dinero {
+  read -p "Introduzca el dinero (${productos[$producto]}€): " dinero
+  # Validar que la cantidad introducida sea suficiente
+  if (( $(echo "$dinero < ${productos[$producto]}" | bc -l) )); then
+    echo "ERROR: Dinero insuficiente."
+    introducir_dinero
+  fi
+}
+
+# Función para dispensar el producto y el cambio
+function dispensar_producto {
+  echo "Dispensando $producto..."
+  cantidades[$producto]=$((cantidades[$producto]-1))
+  cambio=$(echo "$dinero - ${productos[$producto]}" | bc -l)
+  if (( $(echo "$cambio > 0" | bc -l) )); then
+    echo "Cambio: $cambio€"
+  fi
+}
+
+# Mostrar los productos disponibles
+mostrar_productos
+
+# Solicitar al usuario que seleccione un producto
+seleccionar_producto
+
+# Solicitar al usuario que introduzca el dinero
+introducir_dinero
+
+# Dispensar el producto y el cambio
+dispensar_producto
